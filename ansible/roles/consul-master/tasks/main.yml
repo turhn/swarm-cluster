@@ -1,0 +1,12 @@
+- name: Container is running
+  docker_container:
+    name: consul
+    image: progrium/consul
+    ports:
+      - 8300:8300
+      - 8301:8301
+      - 8301:8301/udp
+      - 8500:8500
+    restart_policy: always
+    command: -advertise {{ consul_master_ip }} -server -bootstrap
+  tags: [consul-master]

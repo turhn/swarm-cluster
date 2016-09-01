@@ -1,0 +1,39 @@
+- name: Check if certificates created
+  stat: path=/etc/flocker/cluster.key
+  register: certificate
+  tags: [flocker-master]
+
+- name: Certificates are generated
+  raw: cd /etc/flocker && flocker-ca initialize flocker_volumes
+  when: not certificate.stat.exists
+  tags: [flocker-master]
+
+- name: Check if control certificates are created
+  stat: path=/etc/flocker/control-service.key
+  register: control_certificate
+  tags: [flocker-master]
+
+- name: Control certificates are created
+  raw: cd /etc/flocker && flocker-ca create-control-certificate {{ cluster_hostname }}
+  when: not control_certificate.stat.exists
+  tags: [flocker-master]
+
+- name: New host control certificates are created
+  stat: path=/etc/flocker/control-{{ cluster_hostname }}.key
+  register: will_rename
+  tags: [flocker-master]
+
+- name: Rename control certificates
+  raw: >
+    mv /etc/flocker/control-{{ cluster_hostname }}.crt /etc/flocker/control-service.crt &&
+    mv /etc/flocker/control-{{ cluster_hostname }}.key /etc/flocker/control-service.key
+  when: will_rename.stat.exists
+  tags: [flocker-master]
+
+- name: Run Flocker Control Volume Container
+  systemd:
+    name: flocker-control
+    enabled: true
+    state: started
+  tags: [flocker-master]
+

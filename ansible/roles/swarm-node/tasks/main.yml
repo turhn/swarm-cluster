@@ -1,0 +1,14 @@
+- name: Swarm-Node status
+  raw: docker -H :2375 info | grep 'Is Manager' | python -c 'import sys;inp=sys.stdin;sys.exit(0) if "false" in inp.read() else sys.exit(1)'
+  register: swarm_node_status
+  tags: [swarm-node]
+
+- name: Swarm join token
+  raw: docker -H {{ swarm_master_ip }} swarm join-token worker
+  when: swarm_master_status|failed
+  tags: [swarm-node]
+
+- name: Swarm-Node is running
+  raw: docker swarm join --advertise-addr {{ inventory_hostname }}:{{ swarm_master_port }} --token {{ token }} {{ swarm_master_ip }}
+  when: swarm_master_status|failed
+  tags: [swarm-node]

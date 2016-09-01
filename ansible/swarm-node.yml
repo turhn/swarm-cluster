@@ -1,0 +1,11 @@
+- include: provision.yml
+
+- hosts: swarm-node
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - common
+    - docker
+    - flocker
+    - flocker-node
+    - swarm-node

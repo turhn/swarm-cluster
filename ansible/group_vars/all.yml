@@ -1,0 +1,3 @@
+---
+ubuntu_version: xenial
+swarm_master_port: 2375

@@ -1,0 +1,34 @@
+- name: Add Docker Registry
+  apt_repository:
+    repo: deb https://apt.dockerproject.org/repo ubuntu-{{ ubuntu_version }} main
+    update_cache: yes
+    state: present
+  tags: [docker]
+
+- name: Docker-Engine is present
+  apt:
+    name: docker-engine
+    state: latest
+    force: yes
+  tags: [docker]
+
+- name: SystemD service file copied to server
+  copy:
+    src: docker.service
+    dest: /lib/systemd/system/docker.service
+  tags: [docker]
+
+- name: Docker service is running
+  systemd:
+    name: docker
+    enabled: yes
+    daemon_reload: yes
+    state: started
+  tags: [docker]
+
+- name: deploy user belongs to docker group
+  user:
+    name: deploy
+    groups: docker
+    append: yes
+  tags: [docker]

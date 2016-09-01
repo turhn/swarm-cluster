@@ -1,0 +1,7 @@
+- name: docker-compose executable is installed
+  raw: curl -L https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+  tags: [docker-compose]
+
+- name: docker-compose is executable
+  raw: chmod +x /usr/local/bin/docker-compose
+  tags: [docker-compose]

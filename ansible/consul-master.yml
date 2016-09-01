@@ -1,0 +1,12 @@
+- include: provision.yml
+
+- hosts: consul-master
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - common
+    - docker
+    - flocker
+    - flocker-master
+    - flocker-node
+    - consul-master

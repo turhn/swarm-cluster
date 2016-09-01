@@ -1,0 +1,9 @@
+- include: provision.yml
+
+- hosts: docker-registry
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - common
+    - docker
+    - docker-registry

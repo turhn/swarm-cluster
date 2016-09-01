@@ -1,0 +1,10 @@
+- include: provision.yml
+
+- hosts: jenkins-master
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - common
+    - docker
+    - docker-compose
+    - jenkins-master

@@ -1,0 +1,78 @@
+- name: Certificate directory created
+  file:
+    path: "{{ certs_path }}"
+    recurse: yes
+    state: directory
+  tags: [docker-registry]
+
+- name: Certificates exists
+  stat: path={{ certs_path }}/server.key
+  register: certfile
+  tags: [docker-registry]
+
+- name: Create self-signed certificates
+  raw: >
+    sudo openssl req -nodes -newkey rsa:2048
+    -keyout {{ certs_path }}/server.key
+    -x509 -days 3650 -subj "{{ cert_subj }}"
+    -out {{ certs_path }}/server.crt
+  when: not certfile.stat.exists
+  tags: [docker-registry]
+
+- name: Trust certificate
+  raw: cp /data/docker-registry/certs/server.crt /usr/local/share/ca-certificates/server.crt && update-ca-certificates
+  when: not certfile.stat.exists
+  tags: [docker-registry]
+
+- name: Restart docker service
+  systemd:
+    name: docker
+    enabled: yes
+    daemon_reload: yes
+    state: restarted
+  when: not certfile.stat.exists
+  tags: [docker-registry]
+
+- name: Registry directory created
+  file:
+    path: /data/docker-registry/registry
+    recurse: yes
+    state: directory
+  tags: [docker-registry]
+
+- name: Auth directory created
+  file:
+    path: /data/docker-registry/auth
+    recurse: yes
+    state: directory
+  tags: [docker-registry]
+
+- name: Basic auth file exists
+  stat: path=/data/docker-registry/auth/.htpasswd
+  register: authfile
+  tags: [docker-registry]
+
+- name: Create auth file
+  raw: docker run --rm --entrypoint htpasswd registry:2 -Bbn {{ basic_auth_username }} {{ basic_auth_password }} > /data/docker-registry/auth/.htpasswd
+  when: not authfile.stat.exists
+  tags: [docker-registry]
+
+- name: Container is running
+  docker_container:
+    name: registry
+    image: registry:2
+    restart_policy: always
+    state: started
+    volumes:
+      - /data/docker-registry/certs:/certs
+      - /data/docker-registry/auth:/auth
+      - /data/docker-registry/registry:/var/lib/registry
+    ports:
+      - 5000:5000
+    env:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/.htpasswd
+      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/server.crt
+      REGISTRY_HTTP_TLS_KEY: /certs/server.key
+  tags: [docker-registry]

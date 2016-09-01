@@ -1,0 +1,36 @@
+- name: Flocker prerequisites are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - apt-transport-https
+    - software-properties-common
+  tags: [flocker]
+
+- name: Temp file is created
+  copy:
+    src: buildbot-700
+    dest: /etc/apt/preferences.d/buildbot-700
+  tags: [flocker]
+
+- name: Flocker registry is added
+  apt_repository:
+    repo: deb https://clusterhq-archive.s3.amazonaws.com/ubuntu/16.04/amd64 /
+    update_cache: yes
+    state: present
+  tags: [flocker]
+
+- name: Flocker packages are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+    force: yes
+  with_items:
+    - clusterhq-flocker-cli
+    - clusterhq-flocker-node
+    - clusterhq-flocker-docker-plugin
+  tags: [flocker]
+
+- name: Create flocker directory
+  file: path=/etc/flocker mode=0700 state=directory
+  tags: [flocker]

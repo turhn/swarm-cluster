@@ -1,0 +1,23 @@
+- name: Copy node.crt
+  copy: src={{ item }} dest=/etc/flocker/{{ item }}
+  with_items:
+    - node.crt
+    - node.key
+    - plugin.crt
+    - plugin.key
+  tags: [flocker-node]
+
+- name: Copy agent.xml
+  template: src=agent.test.yml.j2 dest=/etc/flocker/agent.yml
+  tags: [flocker-node]
+
+- name: Run Flocker Container Agent
+  systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  with_items:
+    - flocker-container-agent
+    - flocker-dataset-agent
+    - flocker-docker-plugin
+  tags: [flocker-node]

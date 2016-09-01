@@ -1,0 +1,10 @@
+- name: Swarm-Master status
+  raw: docker -H :2375 info | grep Swarm | python -c 'import sys;inp=sys.stdin;sys.exit(0) if "active" in inp.read() else sys.exit(1)'
+  ignore_errors: True
+  register: swarm_master_status
+  tags: [swarm-master]
+
+- name: Swarm-Master is running
+  raw: docker swarm init --advertise-addr {{ inventory_hostname }}
+  when: swarm_master_status|failed
+  tags: [swarm-master]

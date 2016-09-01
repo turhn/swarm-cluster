@@ -1,0 +1,18 @@
+- name: Deploy group exists
+  group: name=deploy state=present
+  tags: [common]
+
+- name: Deploy user exists
+  user:
+    name: deploy
+    shell: /bin/bash
+    groups: deploy,admin
+    append: yes
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+  tags: [common]
+
+- name: Python-Pip is installed
+  apt: name=python-pip state=latest
+  tags: [common]
